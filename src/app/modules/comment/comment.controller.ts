@@ -5,6 +5,8 @@ import httpStatus from "http-status";
 import { CommentServices } from "./comment.service";
 import { ILike } from "./comment.interface";
 import mongoose from "mongoose";
+import pick from "../../../shared/pick";
+import { paginationFields } from "../../constants/ppagination";
 
 const createComment = catchAsync(async (req: Request, res: Response) => {
   const { ...data } = req.body;
@@ -49,7 +51,16 @@ const dislikeComment = catchAsync(async (req: Request, res: Response) => {
     data: result,
   });
 });
-const getComment = catchAsync(async (req: Request, res: Response) => {});
+const getComment = catchAsync(async (req: Request, res: Response) => {
+  const paginationOptions = pick(req.query, paginationFields);
+  const result = await CommentServices.getComment(paginationOptions);
+  sendresponse(res, {
+    statusCode: httpStatus.OK,
+    success: true,
+    message: "Comment retrive successfully",
+    data: result,
+  });
+});
 export const CommentController = {
   createComment,
   likeComment,

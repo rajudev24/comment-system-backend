@@ -2,6 +2,9 @@ import httpStatus from "http-status";
 import ApiError from "../../../errors/ApiErrors";
 import { IComment, ILike } from "./comment.interface";
 import { Comment } from "./comment.model";
+import { IPaginationOptions } from "../../../interfaces/pagination";
+import calculatePagination from "../../../helpers/paginationHelper";
+import { SortOrder } from "mongoose";
 
 const createComment = async (payload: IComment): Promise<IComment> => {
   const result = await Comment.create(payload);
@@ -49,7 +52,6 @@ const dislikeComment = async (payload: ILike): Promise<IComment | null> => {
       { new: true }
     );
   }
-
   if (comment.dislikes.includes(userId)) {
     throw new ApiError(
       httpStatus.BAD_REQUEST,
@@ -64,8 +66,37 @@ const dislikeComment = async (payload: ILike): Promise<IComment | null> => {
   return result;
 };
 
+const getComment = async (paginationOptions: IPaginationOptions) => {
+  const andConditions: any = [];
+  const { page, limit, skip, sortBy, sortOrder } =
+    calculatePagination(paginationOptions);
+  const sortConditions: { [key: string]: SortOrder } = {};
+  if (sortBy && sortOrder) {
+    sortConditions[sortBy] = sortOrder;
+  }
+  const whereConditions =
+    andConditions.length > 0 ? { $and: andConditions } : {};
+
+  const result = await Comment.find(whereConditions)
+    .sort(sortConditions)
+    .skip(skip)
+    .limit(limit);
+
+  const total = await Comment.countDocuments(whereConditions);
+
+  return {
+    meta: {
+      page,
+      limit,
+      total,
+    },
+    data: result,
+  };
+};
+
 export const CommentServices = {
   createComment,
   likeComment,
   dislikeComment,
+  getComment,
 };
