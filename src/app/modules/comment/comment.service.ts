@@ -78,6 +78,7 @@ const getComment = async (paginationOptions: IPaginationOptions) => {
     andConditions.length > 0 ? { $and: andConditions } : {};
 
   const result = await Comment.find(whereConditions)
+    .populate("author")
     .sort(sortConditions)
     .skip(skip)
     .limit(limit);
@@ -94,9 +95,21 @@ const getComment = async (paginationOptions: IPaginationOptions) => {
   };
 };
 
+const updateSingleCommenet = async (id: string, payload: Partial<IComment>) => {
+  const result = await Comment.findOneAndUpdate({ _id: id }, payload, {
+    new: true,
+  });
+  return result;
+};
+const deleteComment = async (id: string): Promise<IComment | null> => {
+  const result = await Comment.findByIdAndDelete(id);
+  return result;
+};
 export const CommentServices = {
   createComment,
   likeComment,
   dislikeComment,
   getComment,
+  updateSingleCommenet,
+  deleteComment,
 };

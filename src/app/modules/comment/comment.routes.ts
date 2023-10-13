@@ -22,6 +22,13 @@ router.post(
   CommentController.dislikeComment
 );
 
+router.patch(
+  "/update-comment/:commentId",
+  validateRequest(CommentValidation.updateCommentZodSchema),
+  CommentController.updateComment
+);
+router.delete("/delete-comment/:commentId", CommentController.deleteComment);
+
 router.get("/", CommentController.getComment);
 
 export const CommentRoutes = router;
